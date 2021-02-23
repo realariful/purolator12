@@ -9,11 +9,8 @@
             <xpath expr="//header" position="inside">
                 <field name="message_main_attachment_id" invisible="1" />
                 <button name="print_shipping_label" string="Print Shipping Label" groups="stock.group_stock_user" type="object" 
-                    attrs="{'invisible': [ '|', ('state', 'not in', ('done')),('delivery_type','not in',('purolator'))  ]}"/>      
-                
-                 <button name="generate_shipping_label" string="Generate Shipping Labels" groups="stock.group_stock_user" type="object" 
-                    attrs="{'invisible': [ '|', ('state', 'not in', ('done')),('delivery_type','not in',('purolator'))  ]}"/>   
-            </xpath>   
+                    attrs="{'invisible': [ '|', ('state', 'not in', ('done')),('delivery_type','not in',('purolator','canada_post'))  ]}"/>      
+                </xpath>
         </field>
     </record>
 

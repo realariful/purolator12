@@ -1,1 +1,1 @@
-# purolator12
+# odoo_purolator
