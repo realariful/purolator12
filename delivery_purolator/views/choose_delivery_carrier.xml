@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="choose_delivery_carrier_view_form_inherit" model="ir.ui.view">
+        <field name="name">sale.order.form.inherit.purolator</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group" position="inside">
+                <group>
+                    <field name="id" invisible="True"/>
+                    <field name="purolator_service_type" widget="radio" attrs="{'invisible': [('delivery_purolator', '!=', True)]}" domain="[('active', '=', True),('order_id', '=', id)]"/>
+                </group>
+            </xpath>
+            <xpath expr="//group[2]" position="after">
+                <group>
+                    <field name="delivery_purolator" invisible="1"/>
+                    <field name="purolator_get_service" widget="radio" invisible="True"/>
+                    <field name="purolator_shipping_date" attrs="{'invisible': [('delivery_purolator', '!=', True)], 'required': [('delivery_purolator', '=', True)]}"/>
+                    <field name="purolator_total_weight" attrs="{'invisible': [('delivery_purolator', '!=', True)], 'required': [('delivery_purolator', '=', True)]}"/>
+                    <field name="purolator_weight_unit" attrs="{'invisible': [('delivery_purolator', '!=', True)], 'required': [('delivery_purolator', '=', True)]}"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

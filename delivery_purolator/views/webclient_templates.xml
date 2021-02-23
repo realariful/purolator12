@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <template id="delivery_purolator.assets_frontend_ext" inherit_id="website.assets_frontend" name="assets_frontend_ext">
+            <xpath expr="script[last()]" position="after">
+                <link href="/delivery_purolator/static/src/css/delivery_purolator.css" rel="stylesheet" type="text/css"/>
+                <script type="text/javascript" src="/delivery_purolator/static/src/js/widget.js"></script>
+            </xpath>
+        </template>
+        <!-- <template id="delivery_purolator.assets_frontend_ext" inherit_id="website.assets_frontend" name="assets_frontend_ext">
+            <xpath expr="script[last()]" position="after">
+                <script type="text/javascript" src="/delivery_purolator/static/src/js/widget.js"></script>
+            </xpath>
+        </template> -->
+        <template id="website_sale_delivery_inherit" inherit_id="website_sale_delivery.payment_delivery">
+            <xpath expr="//div[@id='delivery_method']" position="inside">
+                <div class="form-group">
+                    <label for="services_id" class="control-label" id="services_name" style="display:none">Purolator Services</label>                                      
+                    <select name="services_id" class="form-control link-style" id="services_id" style="display:none">
+                        <t t-foreach='purolator_services' t-as="service">
+                            <option t-esc='service.name' t-att-value='service.id'/>
+                        </t>
+                    </select>
+                </div>
+                <div class="card" id="puro_card" style="display:none">
+                    <!-- <div id="table_load" class="card-body" style="display:none;insibility: hidden;"> -->
+                        <!-- <img src="/delivery_purolator/static/src/images/loading.svg" alt="loading" style="margin:auto;display:block;text-align:center" /> -->
+                    <!-- </div> -->
+                    <!-- <t t-esc="context" />
+                    <div id="table_load" class="card-body" style="display:none;">
+                        <div style="text-align: center;">Loading Purolator Rating Table</div>
+                    </div> -->
+                    <table id="table_load">
+                        <tbody>
+                            <tr style="">
+                                <th align="left" scope="col" style="cursor:pointer;text-align:left;"> 
+                                    <label for="rating_sort">Choose Sorting:</label>
+                                    <select name="rating_sort" id="rating_sort" onclick="rating_sort()">
+                                        <option value="0">Deliver Time</option>
+                                        <option value="2">Estimated Cost</option>
+                                    </select>
+                                </th>
+                                <th align="right" scope="col" style="cursor:pointer;text-align:left;">
+                                    <label for="rating_sort">Ordering:</label>
+                                    <select name="sort_type" id="sort_type" onclick="rating_sort()">
+                                        <option value="asc">Ascending</option>
+                                        <option value="desc">Descending</option>
+                                    </select>
+                                </th>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div id="purolator_table" class="card-body" style="display:none">
+                        <table id="estimate_table" cellspacing="0" cellpadding="0" border="0"  style="border-collapse:collapse;">
+                            <tbody>
+                                <tr style="border-bottom:1pt solid black;">
+                                    <th onclick="sortTable(0)" align="left" scope="colgroup" style="cursor:pointer;minWidth:400px; height:20px;background-color:#274898;color:white;">Deliver By</th>
+                                    <th onclick="sortTable(1)" align="left" scope="colgroup" style="cursor:pointer;minWidth:200px;height:20px;background-color:#274898;color:white;">Delivery Service</th>
+                                    <th onclick="sortTable(2)" class="thcenter" align="center" scope="colgroup" style="cursor:pointer;text-align: center;height:20px;width:350px;background-color:#274898;;color:white;">Estimated Cost</th>
+                                    <th align="left" valign="middle" scope="colgroup" style="display:none;"></th>
+                                    <th align="left" valign="middle" scope="colgroup" style="height:20px;width:350px;background-color:#274898;;color:white;">&#160;</th>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </xpath>
+        </template>
+    </data>
+</odoo>

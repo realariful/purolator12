@@ -1,0 +1,35 @@
+# -*- coding: utf-8 -*-
+{
+    'name': 'Odoo Purolator Connector',
+    'version': '12.1.0',
+    'summary': 'Send your shippings through Purolator and track them online',
+    'description': "Send your shippings through Purolator and track them online",
+    'category': 'Extra Tools',
+    'author': 'Syncoria Inc.',
+    'website': "https://www.syncoria.com",
+    'company': 'Syncoria Inc.',
+    'maintainer': 'Syncoria Inc.',
+    'depends': ['delivery', 'mail','website_sale','website_sale_delivery','delivery_hs_code'],
+    'external_dependencies': {'python': ['phonenumbers','zeep']},
+    'images': [
+        'static/description/banner.png',
+    ],
+    'data': [
+        'security/ir.model.access.csv',
+        'views/delivery_purolator_view.xml',
+        'views/res_config_settings_views.xml',
+        'views/stock_picking_views.xml',
+        'data/delivery_purolator.xml',
+        'views/choose_delivery_carrier.xml',
+        'views/webclient_templates.xml',
+        'views/product_template_views.xml'
+    ],
+    'price': 450,
+    'currency': 'USD',
+    'license': 'OPL-1',
+    'support': 'support@syncoria.com',
+    'installable': True,
+    'application': False,
+    'auto_install': False,
+    # 'uninstall_hook': 'uninstall_hook',
+}
