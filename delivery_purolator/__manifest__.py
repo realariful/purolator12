@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Odoo Purolator Connector',
-    'version': '12.1.0',
+    'version': '12.2.0',
     'summary': 'Send your shippings through Purolator and track them online',
     'description': "Send your shippings through Purolator and track them online",
     'category': 'Extra Tools',
@@ -20,6 +20,7 @@
         'views/res_config_settings_views.xml',
         'views/stock_picking_views.xml',
         'data/delivery_purolator.xml',
+        'data/ir_cron_data.xml',
         'views/choose_delivery_carrier.xml',
         'views/webclient_templates.xml',
         'views/product_template_views.xml'

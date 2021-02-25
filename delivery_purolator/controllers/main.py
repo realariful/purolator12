@@ -6,7 +6,7 @@ from odoo.addons.website_sale_delivery.controllers.main import WebsiteSaleDelive
 from werkzeug.utils import redirect
 from decimal import *
 
-# show_services = ['PurolatorExpress','PurolatorExpressU.S.','PurolatorExpressInternational','PurolatorGround']      
+show_services = ['PurolatorExpress','PurolatorExpressU.S.','PurolatorExpressInternational','PurolatorGround']      
 class WebsiteSaleDeliveryInherit(WebsiteSaleDelivery):
 
     @http.route(['/shop/update_carrier'], type='json', auth='public', methods=['POST'], website=True, csrf=False)
@@ -20,19 +20,11 @@ class WebsiteSaleDeliveryInherit(WebsiteSaleDelivery):
         purolator_service_rates = []
         minimum_rate = 0
         if carrier.delivery_type == 'purolator':
-            # try:
-            #     choice = request.env['choose.delivery.package'].sudo().search([('order_id','=',order.id),('carrier_id','=',order.carrier_id.id)],order='id desc',limit=1)
-            # except Exception as e:
-            #     choice = request.env['choose.delivery.package'].sudo().search([('order_id','=',order.id),('carrier_id','=',order.carrier_id.id)],order='id desc',limit=1)
-            #     print(e.args)
-            # choice = request.env['choose.delivery.package'].sudo().search([('order_id','=',order.id),('carrier_id','=',order.carrier_id.id)],order='id desc',limit=1)
-            # choice = post['carrier_id']
             purolator_service_type = request.env['purolator.service'].sudo().search([('choise_id','=',carrier_id),('active','=',True)])
             select_service = False
             if purolator_service_type:
                 minimum_rate = purolator_service_type[0].total_price
                 for record in purolator_service_type:
-                    # if record.service_id in show_services:
                     if record.total_price  < minimum_rate:
                         minimum_rate = record.total_price
                         select_service = record.id
@@ -51,7 +43,7 @@ class WebsiteSaleDeliveryInherit(WebsiteSaleDelivery):
                         'options' :   record.options,
                         'total_price' :   '%0.2f' %record.total_price,
                         'order_id' :   record.order_id.id,
-                        'choise_id': carrier_id,#record.choise_id.id,
+                        'choise_id': carrier_id,
                     })
             order.update_delivery_line(select_service)
         post['purolator_service_rates'] = purolator_service_rates
@@ -145,7 +137,6 @@ class WebsiteSaleDeliveryInherit(WebsiteSaleDelivery):
         currency = order.currency_id
         update_delivery_line = order.update_delivery_line(post['service_id'])
         if post and update_delivery_line['status'] == True:
-            # .//Monetary.value_to_html(update_delivery_line['new_service_rate'], {'display_currency': currency})
             data= {
                 'status':True,
                 'new_amount_delivery': self._format_amount(order.amount_delivery, currency),

@@ -217,7 +217,7 @@ class ProviderPurolator(models.Model):
 
 
     def purolator_rate_shipment(self, order):
-        print("purolator_rate_shipment")   
+        _logger.info("purolator_rate_shipment")   
         order.write({'state':'draft'})
         purolator_service_request = self.purolator_service_type
         purolator_service_type = []
@@ -225,9 +225,9 @@ class ProviderPurolator(models.Model):
             if order.purolator_service_type.service_id:
                 if order.purolator_service_type.service_id != self.purolator_service_type:
                     purolator_service_request = order.purolator_service_type.service_id
-                    # print(purolator_service_request)
+                    # _logger.info(purolator_service_request)
         else:
-            print("No service available")
+            _logger.info("No service available")
         max_weight = self._purolator_convert_weight(self.purolator_default_packaging_id.max_weight, self.purolator_weight_unit)
         price = 0.0
         # if order.carrier_id:
@@ -366,7 +366,7 @@ class ProviderPurolator(models.Model):
                     if rate:
                         rating['service_id'] = str(rate.id)
                     if rating.ServiceID == self.purolator_service_type:
-                        # print("rating.ServiceID == self.purolator_service_type")
+                        # _logger.info("rating.ServiceID == self.purolator_service_type")
                         # choice.purolator_service_type = rate.id
                         choice.purolator_service_type = rating.ServiceID
                 
@@ -400,11 +400,11 @@ class ProviderPurolator(models.Model):
 
             # Response for Free Shipment
             if res['success'] and self.free_over and order._compute_amount_total_without_delivery() >= self.amount:
-                print("FREE SHIPMENT")
+                _logger.info("FREE SHIPMENT")
                 res['free_delivery'] = True
             else:
                 res['free_delivery'] = False
-                print("NOT FREE SHIPMENT")
+                _logger.info("NOT FREE SHIPMENT")
         else:
             res =  {'success': False,
                         'price': 0.0,
@@ -417,7 +417,7 @@ class ProviderPurolator(models.Model):
 
 
     def purolator_send_shipping(self, pickings): 
-        print("purolator_send_shipping")       
+        _logger.info("purolator_send_shipping")       
         res = []
         for picking in pickings: 
             purolator_service_type = self.purolator_service_type
@@ -426,7 +426,7 @@ class ProviderPurolator(models.Model):
                     if picking.sale_id.purolator_service_type.service_id != self.purolator_service_type:
                         purolator_service_type = picking.sale_id.purolator_service_type.service_id
             # else:
-            #     print(purolator_service_type)
+            #     _logger.info(purolator_service_type)
 
             srm = PurolatorRequest(self.log_xml, request_type="shipping", prod_environment=self.prod_environment,purolator_activation_key=self.purolator_activation_key)
             superself = self.sudo()
@@ -502,13 +502,15 @@ class ProviderPurolator(models.Model):
                             lrm = PurolatorRequest(self.log_xml, request_type="label", prod_environment=self.prod_environment,purolator_activation_key=self.purolator_activation_key)
                             lrm.web_authentication_detail(KEY,PASS)
                             get_label_url = lrm.get_label_url(master_tracking_id,self.purolator_label_image_format)
-                            _logger.info("-------------------")
-                            _logger.info(get_label_url)
-                            _logger.info("-------------------")
                             if get_label_url['error'] == None:
-                              for url in get_label_url['url']:
-                                    bytepdf = self.get_pdf_byte(url)
-                                    package_labels.append((package_name, bytepdf))
+                                purolator_labels=[]
+                                for url in get_label_url['url']:
+                                    bytepdf,status_code = self.get_pdf_byte(url)
+                                    if status_code == 200:
+                                        package_labels.append((package_name, bytepdf))
+                                    else:
+                                        logmessage = _("Label PDF cannot be generated for <b>Tracking Number : </b> %s<br/>.<br><br/> If you want to get the label pdf, click on button <b>GET LABELS</b>.<br><br/> If you want to get the label url, click on button <b>LABEL URL</b><br/>") % (carrier_tracking_ref)
+                                        picking.message_post(body=logmessage)
                             carrier_tracking_ref = request['tracking_number']
                         else:
                             raise UserError(request['errors_message'])
@@ -518,15 +520,10 @@ class ProviderPurolator(models.Model):
                             lrm = PurolatorRequest(self.log_xml, request_type="label", prod_environment=self.prod_environment,purolator_activation_key=self.purolator_activation_key)
                             lrm.web_authentication_detail(KEY,PASS)
                             get_label_url = lrm.get_label_url(master_tracking_id,self.purolator_label_image_format)
-                            _logger.info("-------------------")
-                            _logger.info(get_label_url)
-                            _logger.info("-------------------")
                             if get_label_url['error'] == None:
                                 purolator_labels=[]
                                 for url in get_label_url['url']:
                                     bytepdf = self.get_pdf_byte(url)
-                                    _logger.info(bytepdf)
-                                    _logger.info(package_name)
                                     package_labels.append((package_name, bytepdf))
                             carrier_tracking_ref = carrier_tracking_ref + "," + request['tracking_number']
                         else:
@@ -546,13 +543,12 @@ class ProviderPurolator(models.Model):
                             if get_label_url['error'] == None:
                                 purolator_labels=[]
                                 for url in get_label_url['url']:
-                                    _logger.info("-------------------")
-                                    _logger.info(get_label_url)
-                                    _logger.info("-------------------")
-                                    bytepdf = self.get_pdf_byte(url)
-                                    _logger.info(bytepdf)
-                                    _logger.info(package_name)
-                                    package_labels.append((package_name, bytepdf))
+                                    bytepdf,status_code = self.get_pdf_byte(url)
+                                    if status_code == 200:
+                                        package_labels.append((package_name, bytepdf))
+                                    else:
+                                        logmessage = _("Label PDF cannot be generated for <b>Tracking Number : </b> %s<br/><br><br/> If you want to get the label pdf, click on button <b>GET LABELS</b>.<br><br/> If you want to get the label url, click on button <b>LABEL URL</b><br/>") % (carrier_tracking_ref)
+                                        picking.message_post(body=logmessage)
 
                             carrier_tracking_ref = carrier_tracking_ref + "," + request['tracking_number']
                             logmessage = _("Shipment created into purolator<br/>" +str(purolator_service_type) +
@@ -591,46 +587,50 @@ class ProviderPurolator(models.Model):
                     _logger.info(warnings)
                 if not request.get('errors_message'):
                     carrier_tracking_ref = request['tracking_number']#Array of PINS
-                    _logger.info(carrier_tracking_ref)
                     carrier_price = 0.0
                     for line in order.order_line:
                         if line.is_delivery == True:
                             carrier_price = line.price_subtotal
                     _logger.info(carrier_price)
+
                     if request['master_tracking_id']:
-                        # carrier_tracking_ref = '332780309891'
-                        _logger.info(self.prod_environment)
-                        _logger.info(self.purolator_activation_key)
                         lrm = PurolatorRequest(self.log_xml, request_type="label", prod_environment=self.prod_environment,purolator_activation_key=self.purolator_activation_key)
-                        # KEY = 'f1affe37c6a14c9d8e65206b2dd42adf'
-                        # PASS = 'm4/ebT&S'
-                        # print(KEY)
-                        # print(PASS)
                         lrm.web_authentication_detail(KEY,PASS)
                         get_label_url = lrm.get_label_url(carrier_tracking_ref,self.purolator_label_image_format)
                         if get_label_url['error'] == None:
-                            purolator_labels = []
-                            print(get_label_url)
+                            purolator_labels=[]
                             for url in get_label_url['url']:
-                                bytepdf = self.get_pdf_byte(url)
-                                PDF_NAME = 'LabelPurolator-%s.%s' % (carrier_tracking_ref, self.purolator_label_image_format)                        
-                                PDF_NAME.encode('utf-8')
-                                _logger.info(PDF_NAME)
-                                purolator_labels.append((PDF_NAME,bytepdf))
-                                _logger.info(purolator_labels)
+                                bytepdf,status_code = self.get_pdf_byte(url)
+                                if status_code == 200:
+                                    PDF_NAME = 'LabelPurolator-%s.%s' % (carrier_tracking_ref, self.purolator_label_image_format)                        
+                                    PDF_NAME = PDF_NAME.encode('utf-8').decode('utf-8')
+                                    purolator_labels.append((PDF_NAME,bytepdf))
+                                else:
+                                    logmessage = _("Label PDF cannot be generated for <b>Tracking Number : </b> %s<br/><br><br/> If you want to get the label pdf, click on button <b>GET LABELS</b>.<br><br/> If you want to get the label url, click on button <b>LABEL URL</b><br/>") % (carrier_tracking_ref)
+                                    picking.message_post(body=logmessage)
+
                                 order_currency = picking.sale_id.currency_id or self.company_id.currency_id
                                 logmessage = _("Shipment sent to carrier %s for shipping with <br/> <b>Tracking Number : </b> %s<br/>") % (picking.carrier_id.name, carrier_tracking_ref)#Cost: %.2f %s , carrier_price, order_currency.name
-                                
                                 picking.message_post(body=logmessage, attachments=purolator_labels)
                             shipping_data = {'exact_price': carrier_price, 'tracking_number': carrier_tracking_ref}
                             res = res + [shipping_data]
                             _logger.info(res)
                 else:
                     raise UserError(request['errors_message'])
-
+                try:
+                    _logger.info("GET LABEL URL")
+                    _logger.info(get_label_url)
+                    _logger.info(purolator_labels)
+                    # if get_label_url['url']:
+                    #     logmessage = str(get_label_url['url'])
+                    #     picking.message_post(body=logmessage)
+                    #     _logger.info("picking.message_post")
+                except Exception as e:
+                    _logger.info(e.args)
             ##############
             # No package #
             ##############
+
             else:
                 raise UserError(_('No packages for this picking'))
             return res
@@ -653,10 +653,43 @@ class ProviderPurolator(models.Model):
 
     def get_pdf_byte(self,url):
         try:
+            _logger.info(url)
             myfile = requests.get(url)
-            _logger.info(myfile)
+            _logger.info(myfile.status_code)
             bytepdf = bytearray(myfile.content)
-            _logger.info(myfile.content)
-            return bytepdf
+            return bytepdf, myfile.status_code
+        except Exception as e:
+            raise UserError(str(e.args))
+
+    def get_labels(self,picking):
+        try:
+            get_label_url = self.get_label_urls(picking)
+            _logger.info(get_label_url)
+            if get_label_url['error'] == None:
+                purolator_labels=[]
+                for url in get_label_url['url']:
+                    bytepdf,status_code = self.get_pdf_byte(url)
+                    if status_code == 200:
+                        PDF_NAME = 'LabelPurolator-%s.%s' % (picking.carrier_tracking_ref, self.purolator_label_image_format)                       
+                        PDF_NAME = PDF_NAME.encode('utf-8').decode('utf-8')
+                        purolator_labels.append((PDF_NAME,bytepdf))
+                        _logger.info(purolator_labels)
+                        logmessage = _("Labels generated")
+                        picking.message_post(body=logmessage, attachments=purolator_labels)
+                    else:
+                        logmessage = _("Label PDF cannot be generated for <b>Tracking Number : </b> %s<br/><br><br/> If you want to get the label pdf, click on button <b>GET LABELS</b>.<br><br/> If you want to get the label url, click on button <b>LABEL URL</b><br/>") % (carrier_tracking_ref)
+                        picking.message_post(body=logmessage)
+        except Exception as e:
+            raise UserError(str(e.args))
+
+    def get_label_urls(self,picking):
+        try:
+            lrm = PurolatorRequest(self.log_xml, request_type="label", prod_environment=self.prod_environment,purolator_activation_key=self.purolator_activation_key)
+            superself = self.sudo()
+            KEY = superself.purolator_production_key if self.prod_environment == True else superself.purolator_developer_key
+            PASS = superself.purolator_production_password if self.prod_environment == True else superself.purolator_developer_password
+            lrm.web_authentication_detail(KEY,PASS)
+            get_label_url = lrm.get_label_url(picking.carrier_tracking_ref,self.purolator_label_image_format)
+            return get_label_url
         except Exception as e:
             raise UserError(str(e.args))

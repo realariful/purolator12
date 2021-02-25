@@ -6,11 +6,9 @@ from odoo import api, models, fields, _, tools
 from odoo.exceptions import UserError
 from odoo.tools import pdf
 from .purolator_request import PurolatorRequest
-
 _logger = logging.getLogger(__name__)
 
 class ProviderPurolator(models.Model):
-    # _inherit = 'choose.delivery.package'
     _inherit = 'sale.order'
 
     purolator_shipping_date =  fields.Date(string='Shipping Date', default=fields.Date.today()) 
@@ -50,7 +48,6 @@ class MySelectionModel(models.Model):
     total_price = fields.Float(string="Display Price")   
     order_id = fields.Many2one('sale.order')
     choise_id = fields.Integer('choose.delivery.package')
-    # choise_id = fields.Many2one('choose.delivery.package')
     active = fields.Boolean(string='Status', default=True)
 
     def name_get(self):
